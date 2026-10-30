@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AtomoLab - Esplora l'Atomo, la Tavola Periodica e l'Ottetto</title>
+  <!-- Tailwind CSS per uno stile moderno e reattivo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome per icone intuitive -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Fredoka & Quicksand per un look didattico, accattivante ed amichevole -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0f172a 0%, #020617 100%);
+      color: #f8fafc;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    h1, h2, h3, .title-font {
+      font-family: 'Fredoka', sans-serif;
+    }
+    /* Stile della griglia periodica */
+    .periodic-grid {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(36px, 1fr));
+      gap: 3px;
+      user-select: none;
+    }
+    @media (max-width: 1024px) {
+      .periodic-grid {
+        grid-template-columns: repeat(18, minmax(28px, 1fr));
+        gap: 2px;
+      }
+    }
+    /* Glow e animazioni */
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .glow-pulse {
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+      100% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.8); }
+    }
+    /* Scrollbar personalizzata */
+    ::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 text-slate-100 flex flex-col justify-between">
+
+  <!-- Header con titolo accattivante e badge didattico -->
+  <header class="max-w-7xl mx-auto w-full mb-4 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-900/80 p-4 rounded-2xl border border-cyan-500/30 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 flex items-center justify-center text-2xl shadow-lg shadow-cyan-500/30">
+        <i class="fa-solid fa-atom text-white animate-spin" style="animation-duration: 9s;"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300">
+          AtomoLab 360°
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400">Esploratore per studenti: Nucleo, Isotopi, Gusci ed Elettroni dell'Ottetto!</p>
+      </div>
+    </div>
+
+    <!-- Quick Help & Guida rapida -->
+    <div class="flex items-center gap-2">
+      <button onclick="openModal('guideModal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 shadow-md">
+        <i class="fa-solid fa-circle-question"></i> Cos'è l'Ottetto?
+      </button>
+      <button onclick="openModal('isotopeGuideModal')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 text-cyan-300">
+        <i class="fa-solid fa-flask"></i> Cos'è un Isotopo?
+      </button>
+    </div>
+  </header>
+
+  <!-- SEZIONE TAVOLA PERIODICA COMPLETA A 118 ELEMENTI -->
+  <section class="max-w-7xl mx-auto w-full mb-5 bg-slate-900/90 rounded-3xl p-4 sm:p-5 border border-slate-800 shadow-2xl">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 border-b border-slate-800 pb-3">
+      <div>
+        <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2 title-font">
+          <i class="fa-solid fa-table-cells text-cyan-400"></i> Tavola Periodica Completa degli Elementi (1-118 IUPAC)
+        </h2>
+        <p class="text-xs text-slate-400">Clicca su qualsiasi elemento: caricherà istantaneamente il nucleo 3D, gli isotopi e la configurazione dei gusci elettronici!</p>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-400">Elemento attivo:</span>
+        <span id="quickElementIndicator" class="px-3 py-1 rounded-xl bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 font-bold font-mono">
+          #6 C - Carbonio
+        </span>
+      </div>
+    </div>
+
+    <!-- Legenda Categorie Cromatica Didattica -->
+    <div class="flex flex-wrap gap-1.5 sm:gap-2 mb-3 text-[10px] sm:text-[11px]">
+      <span class="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-600/50">Metalli Alcalini</span>
+      <span class="px-2 py-0.5 rounded-md bg-orange-950/80 text-orange-300 border border-orange-600/50">Alcalino-terrosi</span>
+      <span class="px-2 py-0.5 rounded-md bg-blue-950/80 text-blue-300 border border-blue-600/50">Metalli di Transizione</span>
+      <span class="px-2 py-0.5 rounded-md bg-indigo-950/80 text-indigo-300 border border-indigo-600/50">Post-transizione</span>
+      <span class="px-2 py-0.5 rounded-md bg-teal-950/80 text-teal-300 border border-teal-600/50">Semimetalli</span>
+      <span class="px-2 py-0.5 rounded-md bg-sky-950/80 text-sky-300 border border-sky-600/50">Non-metalli</span>
+      <span class="px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-600/50">Alogeni</span>
+      <span class="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 font-semibold">Gas Nobili</span>
+      <span class="px-2 py-0.5 rounded-md bg-pink-950/80 text-pink-300 border border-pink-600/50">Lantanoidi</span>
+      <span class="px-2 py-0.5 rounded-md bg-rose-950/80 text-rose-300 border border-rose-600/50">Attinoidi</span>
+    </div>
+
+    <!-- Contenitore Griglia Tavola Periodica Scorrevole su schermi piccoli -->
+    <div class="overflow-x-auto pb-2">
+      <div id="periodicTableContainer" class="periodic-grid min-w-[890px]">
+        <!-- Popolata dinamicamente per tutti i 118 elementi -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenitore Principale -->
+  <main class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+
+    <!-- COLONNA SINISTRA: Visualizzatore dell'Atomo con Canvas & Pannello Particelle (7 Colonne) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      
+      <!-- Card Display Atomo -->
+      <div class="relative bg-slate-900/90 rounded-3xl p-4 sm:p-5 border border-slate-800 shadow-2xl flex flex-col flex-1 min-h-[460px] overflow-hidden">
+        <!-- Barra Superiore Info Atomo -->
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-2 z-10">
+          <div class="flex items-center gap-3">
+            <span id="badgeElementSymbol" class="text-3xl font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/40 w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner title-font">
+              C
+            </span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="elementName" class="text-xl sm:text-2xl font-bold text-white tracking-wide">Carbonio</h2>
+                <span id="elementCategory" class="text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Non-metallo</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs text-slate-400 font-mono mt-0.5">
+                <span>Z (Protoni): <strong id="valZ" class="text-rose-400 font-bold">6</strong></span>
+                <span>•</span>
+                <span>A (Massa): <strong id="valA" class="text-amber-400 font-bold">12</strong></span>
+                <span>•</span>
+                <span>Carica Totale: <strong id="valCharge" class="text-emerald-400 font-bold">0 (Neutro)</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert Didattico Ottetto Rapido -->
+          <div id="octetBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all">
+            <!-- Popolato via JS -->
+          </div>
+        </div>
+
+        <!-- Canvas Atomo Interattivo -->
+        <div class="relative flex-1 flex items-center justify-center w-full min-h-[340px]">
+          <canvas id="atomCanvas" class="w-full h-full block rounded-2xl cursor-grab active:cursor-grabbing"></canvas>
+
+          <!-- Overlay Spiegazione Nucleo / Orbitale al click -->
+          <div id="canvasTip" class="absolute bottom-2 left-2 bg-slate-950/80 backdrop-blur border border-slate-800 text-[11px] text-slate-300 px-3 py-1.5 rounded-lg pointer-events-none flex items-center gap-2 shadow">
+            <i class="fa-solid fa-lightbulb text-amber-400"></i>
+            <span>Trascina per ruotare il nucleo 3D. Gli anelli mostrano i livelli energetici (K, L, M, N...)!</span>
+          </div>
+
+          <!-- Legenda Rapida -->
+          <div class="absolute top-2 right-2 bg-slate-950/80 backdrop-blur border border-slate-800 p-2 rounded-xl text-[11px] flex flex-col gap-1 pointer-events-none">
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500"></span> Protone (p+)</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Neutrone (n°)</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400"></span> Elettrone (e-)</div>
+          </div>
+        </div>
+
+        <!-- Barra di Stato Stabilità & Ottetto -->
+        <div class="mt-3 p-3 bg-slate-950/70 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <!-- Stato Isotopo -->
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced text-amber-400 text-sm"></i>
+            <div>
+              <span class="text-slate-400">Stato Isotopico: </span>
+              <strong id="isotopeStatusText" class="text-white">Isotopo Stabile Standard</strong>
+            </div>
+          </div>
+
+          <!-- Stato Ottetto / Gusci -->
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-ring text-cyan-400 text-sm"></i>
+            <div>
+              <span class="text-slate-400">Elettroni di Valenza: </span>
+              <strong id="valenceCountText" class="text-cyan-300">4 / 8</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANCO DI LABORATORIO: Aggiungi/Rimuovi Particelle (Crea Nuovi Elementi e Isotopi) -->
+      <div class="bg-slate-900/90 rounded-3xl p-4 border border-slate-800 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Laboratorio di Manipolazione Particelle Subatomiche
+          </h3>
+          <button onclick="resetToStandardElement()" class="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Ripristina Standard
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          
+          <!-- PROTONI (Cambia Elemento!) -->
+          <div class="bg-rose-950/20 border border-rose-600/30 p-3 rounded-2xl flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus-circle text-rose-400"></i> Protoni (Z)
+              </span>
+              <span id="protonCountBadge" class="text-lg font-bold text-rose-400 font-mono">6</span>
+            </div>
+            <p class="text-[11px] text-rose-200/70 mb-2 leading-tight">
+              I protoni determinano la <strong>carta d'identità</strong>! Se cambi protoni, cambi elemento.
+            </p>
+            <div class="flex gap-2">
+              <button onclick="modifyProtons(-1)" class="flex-1 py-1.5 bg-rose-900/60 hover:bg-rose-800 active:scale-95 text-white rounded-xl font-bold transition text-sm">
+                - 1 p⁺
+              </button>
+              <button onclick="modifyProtons(1)" class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl font-bold transition text-sm shadow-lg shadow-rose-900/50">
+                + 1 p⁺
+              </button>
+            </div>
+          </div>
+
+          <!-- NEUTRONI (Crea Isotopi!) -->
+          <div class="bg-slate-800/40 border border-slate-600/40 p-3 rounded-2xl flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle text-slate-400"></i> Neutroni (N)
+              </span>
+              <span id="neutronCountBadge" class="text-lg font-bold text-slate-300 font-mono">6</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-2 leading-tight">
+              I neutroni fanno da colla nel nucleo. Se variano crei un <strong>ISOTOPO</strong> (più pesante o radioattivo)!
+            </p>
+            <div class="flex gap-2">
+              <button onclick="modifyNeutrons(-1)" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white rounded-xl font-bold transition text-sm">
+                - 1 n⁰
+              </button>
+              <button onclick="modifyNeutrons(1)" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white rounded-xl font-bold transition text-sm shadow">
+                + 1 n⁰
+              </button>
+            </div>
+          </div>
+
+          <!-- ELETTRONI (Regola Ottetto e Ioni!) -->
+          <div class="bg-cyan-950/20 border border-cyan-600/30 p-3 rounded-2xl flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-minus-circle text-cyan-400"></i> Elettroni (e⁻)
+              </span>
+              <span id="electronCountBadge" class="text-lg font-bold text-cyan-400 font-mono">6</span>
+            </div>
+            <p class="text-[11px] text-cyan-200/70 mb-2 leading-tight">
+              Aggiungi o togli elettroni per creare <strong>ioni</strong> e tentare di completare l'<strong>ottetto</strong>!
+            </p>
+            <div class="flex gap-2">
+              <button onclick="modifyElectrons(-1)" class="flex-1 py-1.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 active:scale-95 text-white rounded-xl font-bold transition text-sm">
+                - 1 e⁻
+              </button>
+              <button onclick="modifyElectrons(1)" class="flex-1 py-1.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white rounded-xl font-bold transition text-sm shadow-lg shadow-cyan-950">
+                + 1 e⁻
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLONNA DESTRA: Spiegazione Didattica Ottetto, Gusci di Bohr e Quiz Rapido (5 Colonne) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- SCHEDA DIDATTICA DELL'OTTETTO E CONFIGURAZIONE ELETTRONICA -->
+      <div class="bg-gradient-to-br from-slate-900 to-indigo-950/50 rounded-3xl p-4 sm:p-5 border border-indigo-500/30 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-indigo-500/20 pb-2">
+            <h3 class="text-base font-bold text-indigo-300 flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-cyan-400"></i> Il Segreto dell'Ottetto: Come si comporta?
+            </h3>
+            <span id="octetStatusMini" class="text-xs font-bold text-amber-300">Guscio Incompleto</span>
+          </div>
+
+          <!-- Distribuzione per gusci (Bohr Shells: K, L, M, N, O, P, Q) -->
+          <div class="mb-3">
+            <div class="text-xs text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>Distribuzione degli elettroni nei gusci:</span>
+              <span id="shellFormula" class="font-mono text-cyan-300 font-bold">2, 4</span>
+            </div>
+            <div id="shellBars" class="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-center text-[10px]">
+              <!-- Popolato dinamicamente (Guscio K, L, M, N, O, P, Q) -->
+            </div>
+          </div>
+
+          <!-- Spiegazione intuitiva in italiano semplice per studenti -->
+          <div id="octetExplanationBox" class="p-3.5 bg-slate-950/60 border border-indigo-900/60 rounded-2xl text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <!-- Testo generato dinamicamente con logica chimica -->
+          </div>
+        </div>
+
+        <!-- Missione / Suggerimento Interattivo per lo studente -->
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-xs text-cyan-300">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm"></i>
+            <span id="missionHint">Prova ad aggiungere elettroni finché il cerchio esterno non ne ha 8!</span>
+          </div>
+          <button onclick="stabilizeAtomOctet()" class="whitespace-nowrap px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition active:scale-95">
+            ⚡ Raggiungi Gas Nobile
+          </button>
+        </div>
+      </div>
+
+      <!-- CARD APPROFONDIMENTO: ISOTOPO ATTUALE E CURIOSITÀ FISICA -->
+      <div class="bg-slate-900/90 rounded-3xl p-4 sm:p-5 border border-slate-800 shadow-xl flex flex-col gap-2">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-atom text-rose-400"></i> Identikit dell'Atomo Selezionato
+        </h3>
+        <div id="isotopeDetailCard" class="text-xs text-slate-300 leading-relaxed p-3 bg-slate-950/50 rounded-2xl border border-slate-800">
+          <!-- Popolato via JS con dettagli specifici dell'elemento -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODALE GUIDA: REGOLA DELL'OTTETTO -->
+  <div id="guideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-indigo-500/40 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('guideModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500 flex items-center justify-center text-indigo-400 text-xl">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white">Che cos'è la Regola dell'Ottetto?</h3>
+      </div>
+      <div class="text-sm text-slate-300 space-y-3 leading-relaxed">
+        <p>
+          Immagina gli atomi come persone che cercano stabilità e relax: gli atomi sono <strong>super felici e stabili</strong> solo quando il loro <strong>guscio più esterno ha esattamente 8 elettroni</strong> (oppure 2 per il piccolissimo Elio e Idrogeno).
+        </p>
+        <div class="p-3 bg-indigo-950/50 rounded-2xl border border-indigo-800 text-indigo-200">
+          <p class="font-bold text-cyan-300 mb-1">🎮 Come giocano gli atomi per vincere?</p>
+          <ul class="list-disc list-inside space-y-1 text-xs">
+            <li><strong>Se ne hanno 1, 2 o 3 all'esterno:</strong> preferiscono <em>regalarli</em> (diventando ioni positivi/cationi).</li>
+            <li><strong>Se ne hanno 5, 6 o 7 all'esterno:</strong> preferiscono <em>rubarli o prenderli</em> (diventando ioni negativi/anioni).</li>
+            <li><strong>Se ne hanno 4:</strong> spesso li <em>condividono</em> (legami covalenti, come fa il Carbonio!).</li>
+            <li><strong>Se ne hanno già 8:</strong> sono i <em>Gas Nobili</em> (Neon, Argon), non hanno bisogno di nessuno!</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 text-right">
+        <button onclick="closeModal('guideModal')" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm">
+          Ho Capito!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE GUIDA: COSA SONO GLI ISOTOPI -->
+  <div id="isotopeGuideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-cyan-500/40 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('isotopeGuideModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-cyan-600/30 border border-cyan-500 flex items-center justify-center text-cyan-400 text-xl">
+          <i class="fa-solid fa-dna"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white">Elementi vs Isotopi: Qual è la differenza?</h3>
+      </div>
+      <div class="text-sm text-slate-300 space-y-3 leading-relaxed">
+        <p>
+          Pensa ai protoni come al <strong>codice fiscale</strong> di un atomo:
+        </p>
+        <ul class="list-disc list-inside space-y-1.5 text-xs">
+          <li>Se un atomo ha <strong>6 protoni</strong>, è SEMPRE Carbonio. Se aggiungi 1 protone (arrivando a 7), diventa Azoto!</li>
+          <li>I <strong>neutroni</strong> invece sono come lo zaino: se metti più neutroni, l'atomo rimane Carbonio, ma diventa più <strong>pesante</strong>!</li>
+        </ul>
+        <div class="p-3 bg-cyan-950/50 rounded-2xl border border-cyan-800 text-cyan-200 text-xs">
+          <strong>Esempio Famoso:</strong> Il Carbonio-12 (6 protoni + 6 neutroni) è quello di cui siamo fatti. Il Carbonio-14 (6 protoni + 8 neutroni) è un isotopo radioattivo usato dagli archeologi per datare i fossili dei dinosauri e delle mummie!
+        </div>
+      </div>
+      <div class="mt-5 text-right">
+        <button onclick="closeModal('isotopeGuideModal')" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-sm">
+          Forte, proviamo!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Context Semplice (Sintetizzatore Web Audio senza file esterni) -->
+  <script>
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playPop(freq = 440, type = 'sine') {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.5, this.ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        } catch(e) {}
+      },
+      playSuccess() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+          });
+        } catch(e) {}
+      }
+    };
+  </script>
+
+  <!-- DATABASE ELEMENTI & LOGICA CHIMICA -->
+  <script>
+    // Tabella PERIODICA COMPLETA DI TUTTI I 118 ELEMENTI IUPAC
+    // period: 1-7, col: 1-18 (Lantanoidi riga 8 col 4-18, Attinoidi riga 9 col 4-18)
+    const ELEMENTS_DATA = [
+      // PERIODO 1
+      { z: 1, s: "H", name: "Idrogeno", mass: 1, stdN: 0, cat: "nonmetal", period: 1, col: 1 },
+      { z: 2, s: "He", name: "Elio", mass: 4, stdN: 2, cat: "noble", period: 1, col: 18 },
+      // PERIODO 2
+      { z: 3, s: "Li", name: "Litio", mass: 7, stdN: 4, cat: "alkali", period: 2, col: 1 },
+      { z: 4, s: "Be", name: "Berillio", mass: 9, stdN: 5, cat: "alkaline", period: 2, col: 2 },
+      { z: 5, s: "B", name: "Boro", mass: 11, stdN: 6, cat: "metalloid", period: 2, col: 13 },
+      { z: 6, s: "C", name: "Carbonio", mass: 12, stdN: 6, cat: "nonmetal", period: 2, col: 14 },
+      { z: 7, s: "N", name: "Azoto", mass: 14, stdN: 7, cat: "nonmetal", period: 2, col: 15 },
+      { z: 8, s: "O", name: "Ossigeno", mass: 16, stdN: 8, cat: "nonmetal", period: 2, col: 16 },
+      { z: 9, s: "F", name: "Fluoro", mass: 19, stdN: 10, cat: "halogen", period: 2, col: 17 },
+      { z: 10, s: "Ne", name: "Neon", mass: 20, stdN: 10, cat: "noble", period: 2, col: 18 },
+      // PERIODO 3
+      { z: 11, s: "Na", name: "Sodio", mass: 23, stdN: 12, cat: "alkali", period: 3, col: 1 },
+      { z: 12, s: "Mg", name: "Magnesio", mass: 24, stdN: 12, cat: "alkaline", period: 3, col: 2 },
+      { z: 13, s: "Al", name: "Alluminio", mass: 27, stdN: 14, cat: "post-transition", period: 3, col: 13 },
+      { z: 14, s: "Si", name: "Silicio", mass: 28, stdN: 14, cat: "metalloid", period: 3, col: 14 },
+      { z: 15, s: "P", name: "Fosforo", mass: 31, stdN: 16, cat: "nonmetal", period: 3, col: 15 },
+      { z: 16, s: "S", name: "Zolfo", mass: 32, stdN: 16, cat: "nonmetal", period: 3, col: 16 },
+      { z: 17, s: "Cl", name: "Cloro", mass: 35, stdN: 18, cat: "halogen", period: 3, col: 17 },
+      { z: 18, s: "Ar", name: "Argon", mass: 40, stdN: 22, cat: "noble", period: 3, col: 18 },
+      // PERIODO 4
+      { z: 19, s: "K", name: "Potassio", mass: 39, stdN: 20, cat: "alkali", period: 4, col: 1 },
+      { z: 20, s: "Ca", name: "Calcio", mass: 40, stdN: 20, cat: "alkaline", period: 4, col: 2 },
+      { z: 21, s: "Sc", name: "Scandio", mass: 45, stdN: 24, cat: "transition", period: 4, col: 3 },
+      { z: 22, s: "Ti", name: "Titanio", mass: 48, stdN: 26, cat: "transition", period: 4, col: 4 },
+      { z: 23, s: "V", name: "Vanadio", mass: 51, stdN: 28, cat: "transition", period: 4, col: 5 },
+      { z: 24, s: "Cr", name: "Cromo", mass: 52, stdN: 28, cat: "transition", period: 4, col: 6 },
+      { z: 25, s: "Mn", name: "Manganese", mass: 55, stdN: 30, cat: "transition", period: 4, col: 7 },
+      { z: 26, s: "Fe", name: "Ferro", mass: 56, stdN: 30, cat: "transition", period: 4, col: 8 },
+      { z: 27, s: "Co", name: "Cobalto", mass: 59, stdN: 32, cat: "transition", period: 4, col: 9 },
+      { z: 28, s: "Ni", name: "Nichel", mass: 59, stdN: 31, cat: "transition", period: 4, col: 10 },
+      { z: 29, s: "Cu", name: "Rame", mass: 64, stdN: 35, cat: "transition", period: 4, col: 11 },
+      { z: 30, s: "Zn", name: "Zinco", mass: 65, stdN: 35, cat: "transition", period: 4, col: 12 },
+      { z: 31, s: "Ga", name: "Gallio", mass: 70, stdN: 39, cat: "post-transition", period: 4, col: 13 },
+      { z: 32, s: "Ge", name: "Germanio", mass: 73, stdN: 41, cat: "metalloid", period: 4, col: 14 },
+      { z: 33, s: "As", name: "Arsenico", mass: 75, stdN: 42, cat: "metalloid", period: 4, col: 15 },
+      { z: 34, s: "Se", name: "Selenio", mass: 79, stdN: 45, cat: "nonmetal", period: 4, col: 16 },
+      { z: 35, s: "Br", name: "Bromo", mass: 80, stdN: 45, cat: "halogen", period: 4, col: 17 },
+      { z: 36, s: "Kr", name: "Kripton", mass: 84, stdN: 48, cat: "noble", period: 4, col: 18 },
+      // PERIODO 5
+      { z: 37, s: "Rb", name: "Rubidio", mass: 85, stdN: 48, cat: "alkali", period: 5, col: 1 },
+      { z: 38, s: "Sr", name: "Stronzio", mass: 88, stdN: 50, cat: "alkaline", period: 5, col: 2 },
+      { z: 39, s: "Y", name: "Ittrio", mass: 89, stdN: 50, cat: "transition", period: 5, col: 3 },
+      { z: 40, s: "Zr", name: "Zirconio", mass: 91, stdN: 51, cat: "transition", period: 5, col: 4 },
+      { z: 41, s: "Nb", name: "Niobio", mass: 93, stdN: 52, cat: "transition", period: 5, col: 5 },
+      { z: 42, s: "Mo", name: "Molibdeno", mass: 96, stdN: 54, cat: "transition", period: 5, col: 6 },
+      { z: 43, s: "Tc", name: "Tecnezio", mass: 98, stdN: 55, cat: "transition", period: 5, col: 7 },
+      { z: 44, s: "Ru", name: "Rutenio", mass: 101, stdN: 57, cat: "transition", period: 5, col: 8 },
+      { z: 45, s: "Rh", name: "Rodio", mass: 103, stdN: 58, cat: "transition", period: 5, col: 9 },
+      { z: 46, s: "Pd", name: "Palladio", mass: 106, stdN: 60, cat: "transition", period: 5, col: 10 },
+      { z: 47, s: "Ag", name: "Argento", mass: 108, stdN: 61, cat: "transition", period: 5, col: 11 },
+      { z: 48, s: "Cd", name: "Cadmio", mass: 112, stdN: 64, cat: "transition", period: 5, col: 12 },
+      { z: 49, s: "In", name: "Indio", mass: 115, stdN: 66, cat: "post-transition", period: 5, col: 13 },
+      { z: 50, s: "Sn", name: "Stagno", mass: 119, stdN: 69, cat: "post-transition", period: 5, col: 14 },
+      { z: 51, s: "Sb", name: "Antimonio", mass: 122, stdN: 71, cat: "metalloid", period: 5, col: 15 },
+      { z: 52, s: "Te", name: "Tellurio", mass: 128, stdN: 76, cat: "metalloid", period: 5, col: 16 },
+      { z: 53, s: "I", name: "Iodio", mass: 127, stdN: 74, cat: "halogen", period: 5, col: 17 },
+      { z: 54, s: "Xe", name: "Xenon", mass: 131, stdN: 77, cat: "noble", period: 5, col: 18 },
+      // PERIODO 6
+      { z: 55, s: "Cs", name: "Cesio", mass: 133, stdN: 78, cat: "alkali", period: 6, col: 1 },
+      { z: 56, s: "Ba", name: "Bario", mass: 137, stdN: 81, cat: "alkaline", period: 6, col: 2 },
+      { z: 57, s: "La", name: "Lantanio", mass: 139, stdN: 82, cat: "lanthanide", period: 8, col: 4 },
+      { z: 58, s: "Ce", name: "Cerio", mass: 140, stdN: 82, cat: "lanthanide", period: 8, col: 5 },
+      { z: 59, s: "Pr", name: "Praseodimio", mass: 141, stdN: 82, cat: "lanthanide", period: 8, col: 6 },
+      { z: 60, s: "Nd", name: "Neodimio", mass: 144, stdN: 84, cat: "lanthanide", period: 8, col: 7 },
+      { z: 61, s: "Pm", name: "Promezio", mass: 145, stdN: 84, cat: "lanthanide", period: 8, col: 8 },
+      { z: 62, s: "Sm", name: "Samario", mass: 150, stdN: 88, cat: "lanthanide", period: 8, col: 9 },
+      { z: 63, s: "Eu", name: "Europio", mass: 152, stdN: 89, cat: "lanthanide", period: 8, col: 10 },
+      { z: 64, s: "Gd", name: "Gadolinio", mass: 157, stdN: 93, cat: "lanthanide", period: 8, col: 11 },
+      { z: 65, s: "Tb", name: "Terbio", mass: 159, stdN: 94, cat: "lanthanide", period: 8, col: 12 },
+      { z: 66, s: "Dy", name: "Disprosio", mass: 163, stdN: 97, cat: "lanthanide", period: 8, col: 13 },
+      { z: 67, s: "Ho", name: "Olmio", mass: 165, stdN: 98, cat: "lanthanide", period: 8, col: 14 },
+      { z: 68, s: "Er", name: "Erbio", mass: 167, stdN: 99, cat: "lanthanide", period: 8, col: 15 },
+      { z: 69, s: "Tm", name: "Tulio", mass: 169, stdN: 100, cat: "lanthanide", period: 8, col: 16 },
+      { z: 70, s: "Yb", name: "Itterbio", mass: 173, stdN: 103, cat: "lanthanide", period: 8, col: 17 },
+      { z: 71, s: "Lu", name: "Lutezio", mass: 175, stdN: 104, cat: "lanthanide", period: 8, col: 18 },
+      { z: 72, s: "Hf", name: "Afnio", mass: 178, stdN: 106, cat: "transition", period: 6, col: 4 },
+      { z: 73, s: "Ta", name: "Tantalio", mass: 181, stdN: 108, cat: "transition", period: 6, col: 5 },
+      { z: 74, s: "W", name: "Tungsteno", mass: 184, stdN: 110, cat: "transition", period: 6, col: 6 },
+      { z: 75, s: "Re", name: "Renio", mass: 186, stdN: 111, cat: "transition", period: 6, col: 7 },
+      { z: 76, s: "Os", name: "Osmio", mass: 190, stdN: 114, cat: "transition", period: 6, col: 8 },
+      { z: 77, s: "Ir", name: "Iridio", mass: 192, stdN: 115, cat: "transition", period: 6, col: 9 },
+      { z: 78, s: "Pt", name: "Platino", mass: 195, stdN: 117, cat: "transition", period: 6, col: 10 },
+      { z: 79, s: "Au", name: "Oro", mass: 197, stdN: 118, cat: "transition", period: 6, col: 11 },
+      { z: 80, s: "Hg", name: "Mercurio", mass: 201, stdN: 121, cat: "transition", period: 6, col: 12 },
+      { z: 81, s: "Tl", name: "Tallio", mass: 204, stdN: 123, cat: "post-transition", period: 6, col: 13 },
+      { z: 82, s: "Pb", name: "Piombo", mass: 207, stdN: 125, cat: "post-transition", period: 6, col: 14 },
+      { z: 83, s: "Bi", name: "Bismuto", mass: 209, stdN: 126, cat: "post-transition", period: 6, col: 15 },
+      { z: 84, s: "Po", name: "Polonio", mass: 209, stdN: 125, cat: "post-transition", period: 6, col: 16 },
+      { z: 85, s: "At", name: "Astato", mass: 210, stdN: 125, cat: "halogen", period: 6, col: 17 },
+      { z: 86, s: "Rn", name: "Radon", mass: 222, stdN: 136, cat: "noble", period: 6, col: 18 },
+      // PERIODO 7
+      { z: 87, s: "Fr", name: "Francio", mass: 223, stdN: 136, cat: "alkali", period: 7, col: 1 },
+      { z: 88, s: "Ra", name: "Radio", mass: 226, stdN: 138, cat: "alkaline", period: 7, col: 2 },
+      { z: 89, s: "Ac", name: "Attinio", mass: 227, stdN: 138, cat: "actinide", period: 9, col: 4 },
+      { z: 90, s: "Th", name: "Torio", mass: 232, stdN: 142, cat: "actinide", period: 9, col: 5 },
+      { z: 91, s: "Pa", name: "Protoattinio", mass: 231, stdN: 140, cat: "actinide", period: 9, col: 6 },
+      { z: 92, s: "U", name: "Uranio", mass: 238, stdN: 146, cat: "actinide", period: 9, col: 7 },
+      { z: 93, s: "Np", name: "Nettunio", mass: 237, stdN: 144, cat: "actinide", period: 9, col: 8 },
+      { z: 94, s: "Pu", name: "Plutonio", mass: 244, stdN: 150, cat: "actinide", period: 9, col: 9 },
+      { z: 95, s: "Am", name: "Americio", mass: 243, stdN: 148, cat: "actinide", period: 9, col: 10 },
+      { z: 96, s: "Cm", name: "Curio", mass: 247, stdN: 151, cat: "actinide", period: 9, col: 11 },
+      { z: 97, s: "Bk", name: "Berkelio", mass: 247, stdN: 150, cat: "actinide", period: 9, col: 12 },
+      { z: 98, s: "Cf", name: "Californio", mass: 251, stdN: 153, cat: "actinide", period: 9, col: 13 },
+      { z: 99, s: "Es", name: "Einsteinio", mass: 252, stdN: 153, cat: "actinide", period: 9, col: 14 },
+      { z: 100, s: "Fm", name: "Fermio", mass: 257, stdN: 157, cat: "actinide", period: 9, col: 15 },
+      { z: 101, s: "Md", name: "Mendelevio", mass: 258, stdN: 157, cat: "actinide", period: 9, col: 16 },
+      { z: 102, s: "No", name: "Nobelio", mass: 259, stdN: 157, cat: "actinide", period: 9, col: 17 },
+      { z: 103, s: "Lr", name: "Laurenzio", mass: 266, stdN: 163, cat: "actinide", period: 9, col: 18 },
+      { z: 104, s: "Rf", name: "Rutherfordio", mass: 267, stdN: 163, cat: "transition", period: 7, col: 4 },
+      { z: 105, s: "Db", name: "Dubnio", mass: 268, stdN: 163, cat: "transition", period: 7, col: 5 },
+      { z: 106, s: "Sg", name: "Seaborgio", mass: 269, stdN: 163, cat: "transition", period: 7, col: 6 },
+      { z: 107, s: "Bh", name: "Bohrio", mass: 270, stdN: 163, cat: "transition", period: 7, col: 7 },
+      { z: 108, s: "Hs", name: "Hassio", mass: 270, stdN: 162, cat: "transition", period: 7, col: 8 },
+      { z: 109, s: "Mt", name: "Meitnerio", mass: 278, stdN: 169, cat: "transition", period: 7, col: 9 },
+      { z: 110, s: "Ds", name: "Darmstadtio", mass: 281, stdN: 171, cat: "transition", period: 7, col: 10 },
+      { z: 111, s: "Rg", name: "Roentgenio", mass: 282, stdN: 171, cat: "transition", period: 7, col: 11 },
+      { z: 112, s: "Cn", name: "Copernicio", mass: 285, stdN: 173, cat: "transition", period: 7, col: 12 },
+      { z: 113, s: "Nh", name: "Nihonio", mass: 286, stdN: 173, cat: "post-transition", period: 7, col: 13 },
+      { z: 114, s: "Fl", name: "Flerovio", mass: 289, stdN: 175, cat: "post-transition", period: 7, col: 14 },
+      { z: 115, s: "Mc", name: "Moscovio", mass: 290, stdN: 175, cat: "post-transition", period: 7, col: 15 },
+      { z: 116, s: "Lv", name: "Livermorio", mass: 293, stdN: 177, cat: "post-transition", period: 7, col: 16 },
+      { z: 117, s: "Ts", name: "Tennessio", mass: 294, stdN: 177, cat: "halogen", period: 7, col: 17 },
+      { z: 118, s: "Og", name: "Oganesson", mass: 294, stdN: 176, cat: "noble", period: 7, col: 18 }
+    ];
+
+    // Categorie con colori Tailwind
+    const CATEGORY_COLORS = {
+      'nonmetal': { bg: 'bg-sky-950/80', border: 'border-sky-500/60', text: 'text-sky-300', label: 'Non-metallo' },
+      'noble': { bg: 'bg-emerald-950/80', border: 'border-emerald-400', text: 'text-emerald-300', label: 'Gas Nobile' },
+      'alkali': { bg: 'bg-amber-950/80', border: 'border-amber-500/70', text: 'text-amber-300', label: 'Metallo Alcalino' },
+      'alkaline': { bg: 'bg-orange-950/80', border: 'border-orange-500/70', text: 'text-orange-300', label: 'Alcalino-terroso' },
+      'halogen': { bg: 'bg-purple-950/80', border: 'border-purple-500/70', text: 'text-purple-300', label: 'Alogeno' },
+      'metalloid': { bg: 'bg-teal-950/80', border: 'border-teal-500/60', text: 'text-teal-300', label: 'Semimetallo' },
+      'transition': { bg: 'bg-blue-950/70', border: 'border-blue-600/50', text: 'text-blue-300', label: 'Metallo di Transizione' },
+      'post-transition': { bg: 'bg-indigo-950/70', border: 'border-indigo-500/60', text: 'text-indigo-300', label: 'Metallo Post-transizione' },
+      'lanthanide': { bg: 'bg-pink-950/80', border: 'border-pink-500/60', text: 'text-pink-300', label: 'Lantanoide (Terra Rara)' },
+      'actinide': { bg: 'bg-rose-950/80', border: 'border-rose-500/60', text: 'text-rose-300', label: 'Attinoide (Radioattivo)' },
+      'unknown': { bg: 'bg-slate-900', border: 'border-slate-700', text: 'text-slate-400', label: 'Elemento Sintetico' }
+    };
+
+    // STATO CORRENTE DELL'ATOMO
+    let currentAtom = {
+      protons: 6,
+      neutrons: 6,
+      electrons: 6,
+      baseElementZ: 6
+    };
+
+    // Calcolo realistico dei gusci secondo il principio di Aufbau / modello a gusci K, L, M, N, O, P, Q
+    function calculateShells(totalElectrons) {
+      if (totalElectrons <= 0) return [];
+      
+      // Capacità standard teorica per guscio n: 2, 8, 18, 32, 32, 18, 8
+      // Per valori standard di stato fondamentale usiamo la configurazione a blocchi di Aufbau
+      const subshells = [
+        { name: '1s', n: 1, cap: 2 },
+        { name: '2s', n: 2, cap: 2 },
+        { name: '2p', n: 2, cap: 6 },
+        { name: '3s', n: 3, cap: 2 },
+        { name: '3p', n: 3, cap: 6 },
+        { name: '4s', n: 4, cap: 2 },
+        { name: '3d', n: 3, cap: 10 },
+        { name: '4p', n: 4, cap: 6 },
+        { name: '5s', n: 5, cap: 2 },
+        { name: '4d', n: 4, cap: 10 },
+        { name: '5p', n: 5, cap: 6 },
+        { name: '6s', n: 6, cap: 2 },
+        { name: '4f', n: 4, cap: 14 },
+        { name: '5d', n: 5, cap: 10 },
+        { name: '6p', n: 6, cap: 6 },
+        { name: '7s', n: 7, cap: 2 },
+        { name: '5f', n: 5, cap: 14 },
+        { name: '6d', n: 6, cap: 10 },
+        { name: '7p', n: 7, cap: 6 }
+      ];
+
+      const shellsMap = {};
+      let rem = totalElectrons;
+
+      for (let sub of subshells) {
+        if (rem <= 0) break;
+        const take = Math.min(rem, sub.cap);
+        shellsMap[sub.n] = (shellsMap[sub.n] || 0) + take;
+        rem -= take;
+      }
+
+      // Se superiamo i 118 per esperimenti
+      if (rem > 0) {
+        shellsMap[7] = (shellsMap[7] || 0) + rem;
+      }
+
+      const result = [];
+      const maxN = Math.max(...Object.keys(shellsMap).map(Number));
+      for (let i = 1; i <= maxN; i++) {
+        result.push(shellsMap[i] || 0);
+      }
+      return result;
+    }
+
+    // Identifica l'elemento corrente dai protoni
+    function getElementByProtons(p) {
+      const found = ELEMENTS_DATA.find(el => el.z === p);
+      if (found) return found;
+      return {
+        z: p,
+        s: `Uuo-${p}`,
+        name: `Super-elemento #${p}`,
+        mass: p * 2,
+        stdN: p,
+        cat: 'unknown',
+        period: 8,
+        col: 1
+      };
+    }
+  </script>
+
+  <!-- RENDERING TAVOLA PERIODICA & INTERAZIONE -->
+  <script>
+    function renderPeriodicTable() {
+      const container = document.getElementById('periodicTableContainer');
+      container.innerHTML = '';
+
+      // Griglia completa 9 righe x 18 colonne (Righe 1-7 periodi standard, Righe 8-9 Lantanoidi e Attinoidi)
+      for (let row = 1; row <= 9; row++) {
+        for (let col = 1; col <= 18; col++) {
+          
+          // Segnaposto visivo nei periodi 6 e 7 colonna 3 per indicare la deviazione verso Lantanoidi e Attinoidi
+          if (row === 6 && col === 3) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'p-0.5 rounded-lg border border-pink-700/60 bg-pink-950/40 text-center flex flex-col items-center justify-center h-12 text-[9px] text-pink-300 font-bold select-none cursor-pointer hover:bg-pink-900/60 transition';
+            placeholder.innerHTML = '<span>57-71</span><span class="text-[8px] opacity-75">La-Lu</span>';
+            placeholder.title = 'Lantanoidi (terre rare)';
+            placeholder.onclick = () => selectElement(57);
+            container.appendChild(placeholder);
+            continue;
+          }
+          if (row === 7 && col === 3) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'p-0.5 rounded-lg border border-rose-700/60 bg-rose-950/40 text-center flex flex-col items-center justify-center h-12 text-[9px] text-rose-300 font-bold select-none cursor-pointer hover:bg-rose-900/60 transition';
+            placeholder.innerHTML = '<span>89-103</span><span class="text-[8px] opacity-75">Ac-Lr</span>';
+            placeholder.title = 'Attinoidi (elementi pesanti)';
+            placeholder.onclick = () => selectElement(89);
+            container.appendChild(placeholder);
+            continue;
+          }
+
+          // Spazio separatore estetico prima delle righe 8 e 9 (colonne 1-3 vuote)
+          if ((row === 8 || row === 9) && col < 4) {
+            const spacer = document.createElement('div');
+            spacer.className = 'h-12 flex items-center justify-end pr-1 text-[9px] font-bold text-slate-500 uppercase select-none';
+            if (col === 3) {
+              spacer.textContent = (row === 8) ? '★ La-Lu' : '★★ Ac-Lr';
+            }
+            container.appendChild(spacer);
+            continue;
+          }
+
+          const el = ELEMENTS_DATA.find(e => e.period === row && e.col === col);
+          const cell = document.createElement('div');
+          
+          if (el) {
+            const styleInfo = CATEGORY_COLORS[el.cat] || CATEGORY_COLORS['unknown'];
+            cell.className = `p-1 rounded-lg border text-center cursor-pointer transition-all duration-150 transform hover:scale-110 active:scale-95 flex flex-col items-center justify-between h-12 select-none ${styleInfo.bg} ${styleInfo.border} ${el.z === currentAtom.protons ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/50 scale-105 z-20' : 'opacity-90 hover:opacity-100 hover:z-10'}`;
+            cell.setAttribute('title', `${el.name} (Z: ${el.z}, Massa media: ${el.mass})`);
+            cell.id = `ptable-${el.z}`;
+            
+            cell.innerHTML = `
+              <div class="text-[9px] text-slate-400 font-mono w-full text-left leading-none">${el.z}</div>
+              <div class="font-bold text-xs ${styleInfo.text} leading-none font-mono">${el.s}</div>
+              <div class="text-[7.5px] text-slate-300 truncate w-full leading-none font-sans">${el.name.substring(0, 5)}</div>
+            `;
+            cell.onclick = () => selectElement(el.z);
+          } else {
+            // Cella vuota della tavola periodica
+            cell.className = 'h-12 pointer-events-none opacity-0';
+          }
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    function selectElement(z) {
+      AudioEngine.playPop(520, 'triangle');
+      const el = getElementByProtons(z);
+      currentAtom.protons = el.z;
+      currentAtom.neutrons = el.stdN;
+      currentAtom.electrons = el.z; // Atomo neutro iniziale
+      currentAtom.baseElementZ = el.z;
+
+      rebuildNucleusSimulation();
+      updateUI();
+    }
+
+    function resetToStandardElement() {
+      AudioEngine.playPop(400);
+      const el = getElementByProtons(currentAtom.protons);
+      currentAtom.neutrons = el.stdN;
+      currentAtom.electrons = currentAtom.protons;
+      rebuildNucleusSimulation();
+      updateUI();
+    }
+
+    function modifyProtons(delta) {
+      const next = currentAtom.protons + delta;
+      if (next < 1) return;
+      if (next > 118) return; // Limite ai 118 elementi IUPAC
+      
+      AudioEngine.playPop(delta > 0 ? 580 : 380, 'sine');
+      currentAtom.protons = next;
+      const el = getElementByProtons(next);
+      currentAtom.baseElementZ = next;
+      
+      rebuildNucleusSimulation();
+      updateUI();
+    }
+
+    function modifyNeutrons(delta) {
+      const next = currentAtom.neutrons + delta;
+      if (next < 0) return;
+      if (next > 200) return;
+      
+      AudioEngine.playPop(delta > 0 ? 460 : 340, 'triangle');
+      currentAtom.neutrons = next;
+      rebuildNucleusSimulation();
+      updateUI();
+    }
+
+    function modifyElectrons(delta) {
+      const next = currentAtom.electrons + delta;
+      if (next < 0) return;
+      if (next > 130) return;
+
+      AudioEngine.playPop(delta > 0 ? 700 : 300, 'square');
+      currentAtom.electrons = next;
+      updateUI();
+    }
+
+    // Tasto "Ottimizza Ottetto": calcola gli elettroni necessari per il gas nobile più vicino
+    function stabilizeAtomOctet() {
+      // Elettroni dei Gas Nobili completi (He=2, Ne=10, Ar=18, Kr=36, Xe=54, Rn=86, Og=118)
+      const nobleElectrons = [2, 10, 18, 36, 54, 86, 118];
+      let bestTarget = nobleElectrons[0];
+      let minDiff = Math.abs(currentAtom.protons - bestTarget);
+      
+      for (let n of nobleElectrons) {
+        let diff = Math.abs(currentAtom.protons - n);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestTarget = n;
+        }
+      }
+
+      currentAtom.electrons = bestTarget;
+      AudioEngine.playSuccess();
+      updateUI();
+    }
+  </script>
+
+  <!-- AGGIORNAMENTO INTERFACCIA E SPIEGAZIONE OTTETTO -->
+  <script>
+    function updateUI() {
+      const el = getElementByProtons(currentAtom.protons);
+      const styleInfo = CATEGORY_COLORS[el.cat] || CATEGORY_COLORS['unknown'];
+      
+      // Indicatore rapido sotto il titolo
+      const quickInd = document.getElementById('quickElementIndicator');
+      if (quickInd) {
+        quickInd.textContent = `#${el.z} ${el.s} - ${el.name}`;
+      }
+
+      // Element Info Badge
+      const symEl = document.getElementById('badgeElementSymbol');
+      symEl.textContent = el.s;
+      symEl.className = `text-3xl font-bold ${styleInfo.text} ${styleInfo.bg} border ${styleInfo.border} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner title-font`;
+
+      document.getElementById('elementName').textContent = el.name;
+      const catEl = document.getElementById('elementCategory');
+      catEl.textContent = styleInfo.label;
+      catEl.className = `text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${styleInfo.bg} ${styleInfo.text} border ${styleInfo.border}`;
+
+      // Valori numerici
+      const massNumber = currentAtom.protons + currentAtom.neutrons;
+      document.getElementById('valZ').textContent = currentAtom.protons;
+      document.getElementById('valA').textContent = massNumber;
+      
+      const charge = currentAtom.protons - currentAtom.electrons;
+      const chargeEl = document.getElementById('valCharge');
+      if (charge === 0) {
+        chargeEl.textContent = "0 (Neutro)";
+        chargeEl.className = "text-emerald-400 font-bold";
+      } else if (charge > 0) {
+        chargeEl.textContent = `+${charge} (Catione / Ione Positivo)`;
+        chargeEl.className = "text-rose-400 font-bold";
+      } else {
+        chargeEl.textContent = `${charge} (Anione / Ione Negativo)`;
+        chargeEl.className = "text-cyan-400 font-bold";
+      }
+
+      // Badges nei bottoni laboratorio
+      document.getElementById('protonCountBadge').textContent = currentAtom.protons;
+      document.getElementById('neutronCountBadge').textContent = currentAtom.neutrons;
+      document.getElementById('electronCountBadge').textContent = currentAtom.electrons;
+
+      // Status Isotopo
+      const diffNeutrons = currentAtom.neutrons - el.stdN;
+      const isoTextEl = document.getElementById('isotopeStatusText');
+      if (diffNeutrons === 0) {
+        isoTextEl.innerHTML = `<span class="text-emerald-400 font-semibold">${el.name}-${massNumber}</span> (Isotopo Naturale Stabile)`;
+      } else if (Math.abs(diffNeutrons) <= 2) {
+        isoTextEl.innerHTML = `<span class="text-amber-400 font-semibold">${el.name}-${massNumber}</span> (Isotopo ${diffNeutrons > 0 ? 'Pesante' : 'Leggero'} - Stabile/Metastabile)`;
+      } else {
+        isoTextEl.innerHTML = `<span class="text-rose-400 font-semibold">${el.name}-${massNumber}</span> (Isotopo Raro / Radioattivo Instabile!)`;
+      }
+
+      // Dettaglio approfondito dell'isotopo selezionato
+      const detailCard = document.getElementById('isotopeDetailCard');
+      if (detailCard) {
+        let curiosita = "";
+        if (el.z === 1) {
+          if (currentAtom.neutrons === 0) curiosita = "Prozio: l'atomo più semplice dell'Universo (1 protone e nessun neutrone)!";
+          else if (currentAtom.neutrons === 1) curiosita = "Deuterio: idrogeno pesante, presente nell'acqua pesante per reattori nucleari!";
+          else curiosita = "Trizio: isotopo radioattivo super pesante dell'idrogeno!";
+        } else if (el.z === 6) {
+          if (massNumber === 12) curiosita = "Carbonio-12: l'atomo fondamentale per tutta la vita sulla Terra e per il nostro DNA.";
+          else if (massNumber === 14) curiosita = "Carbonio-14: isotopo radioattivo usato dai paleontologi per datare reperti antichi!";
+          else curiosita = `Isotopo con ${currentAtom.neutrons} neutroni: il nucleo ha un bilanciamento modificato.`;
+        } else if (el.z === 92) {
+          curiosita = "Uranio: l'elemento naturale più pesante della tavola periodica, celebre per la fissione nucleare!";
+        } else if (el.z === 118) {
+          curiosita = "Oganesson: l'elemento sintetico più pesante mai scoperto (118 protoni), sintetizzato in laboratorio!";
+        } else {
+          curiosita = `L'elemento ${el.name} possiede <strong>${el.z} protoni</strong> e appartiene alla famiglia dei <em>${styleInfo.label}</em>.`;
+        }
+        
+        detailCard.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-cyan-300">${el.name} (${el.s})</span>
+            <span class="text-[10px] text-slate-400 font-mono">Periodo ${el.period || '?'} • Gruppo ${el.col || '?'}</span>
+          </div>
+          <p class="text-slate-300">${curiosita}</p>
+        `;
+      }
+
+      // Calcolo Gusci Elettronici
+      const shells = calculateShells(currentAtom.electrons);
+      const valenceElectrons = shells.length > 0 ? shells[shells.length - 1] : 0;
+      const maxTargetValence = (shells.length === 1 && currentAtom.protons <= 2) ? 2 : 8;
+
+      document.getElementById('valenceCountText').textContent = `${valenceElectrons} / ${maxTargetValence}`;
+      document.getElementById('shellFormula').textContent = shells.join(' - ');
+
+      // Rendering Barrette Gusci (K, L, M, N, O, P, Q)
+      const shellBars = document.getElementById('shellBars');
+      shellBars.innerHTML = '';
+      const shellLetters = ['K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+      const maxDisplayShells = Math.max(shells.length, 4);
+
+      for (let i = 0; i < maxDisplayShells; i++) {
+        const count = shells[i] || 0;
+        const isOuter = (i === shells.length - 1 && count > 0);
+        const letter = shellLetters[i] || `n=${i+1}`;
+
+        const card = document.createElement('div');
+        card.className = `p-1.5 rounded-xl border flex flex-col items-center justify-center ${isOuter ? 'border-cyan-400 bg-cyan-950/40 ring-1 ring-cyan-400/50' : 'border-slate-800 bg-slate-950/40'}`;
+        card.innerHTML = `
+          <div class="text-[9px] text-slate-400 font-bold">${letter} (${i+1}°)</div>
+          <div class="text-xs sm:text-sm font-bold font-mono ${count > 0 ? 'text-cyan-300' : 'text-slate-600'}">${count}</div>
+          <div class="text-[8px] ${isOuter ? 'text-amber-300 font-bold' : (count > 0 ? 'text-emerald-400' : 'text-slate-600')}">${isOuter ? 'Valenza' : (count > 0 ? 'Interno' : 'Vuoto')}</div>
+        `;
+        shellBars.appendChild(card);
+      }
+
+      // Check Ottetto
+      const octetBadge = document.getElementById('octetBadge');
+      const octetStatusMini = document.getElementById('octetStatusMini');
+      const explanationBox = document.getElementById('octetExplanationBox');
+      const missionHint = document.getElementById('missionHint');
+
+      const isOctetSatisfied = (valenceElectrons === maxTargetValence);
+
+      if (isOctetSatisfied) {
+        octetBadge.className = "flex items-center gap-2 px-3 py-1 rounded-xl border border-emerald-500 bg-emerald-950/60 text-emerald-300 text-xs font-bold shadow-lg shadow-emerald-900/30";
+        octetBadge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Configurazione Stabile (Gas Nobile)!`;
+        octetStatusMini.textContent = "✨ Super Stabile!";
+        octetStatusMini.className = "text-xs font-bold text-emerald-400";
+
+        explanationBox.innerHTML = `
+          <p class="text-emerald-300 font-semibold mb-1"><i class="fa-solid fa-trophy mr-1"></i> Configurazione Elettronica Perfetta!</p>
+          <p>Il guscio più esterno ha raggiunto <strong>${valenceElectrons} elettroni</strong>. In questa configurazione l'atomo è calmo, rilassato e non ha bisogno di legarsi ad altri atomi per stare in equilibrio. Si comporta esattamente come un <strong>Gas Nobile</strong>!</p>
+        `;
+        missionHint.textContent = "Ottimo lavoro! Ora prova a togliere 1 elettrone e guarda cosa succede.";
+      } else {
+        octetBadge.className = "flex items-center gap-2 px-3 py-1 rounded-xl border border-amber-500/60 bg-amber-950/40 text-amber-300 text-xs font-bold";
+        octetBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Ottetto Incompleto (${valenceElectrons}/${maxTargetValence})`;
+        octetStatusMini.textContent = "Reattivo (Incompleto)";
+        octetStatusMini.className = "text-xs font-bold text-amber-400";
+
+        let advice = "";
+        if (valenceElectrons <= 3 && currentAtom.protons > 2) {
+          advice = `Poiché questo atomo ha solo <strong>${valenceElectrons} elettroni di valenza</strong>, fa meno fatica a <strong>CEDERE ${valenceElectrons} elettroni</strong> a qualcun altro piuttosto che trovarne ${8 - valenceElectrons}. Diventerà facilmente un <em>Catione (+${valenceElectrons})</em>!`;
+        } else if (valenceElectrons >= 4 && valenceElectrons < 8) {
+          const needed = maxTargetValence - valenceElectrons;
+          advice = `All'atomo mancano solo <strong>${needed} elettroni</strong> per completare il guscio! Tende ad <strong>ATTIRARE o CONDIVIDERE ${needed} elettroni</strong> con altri atomi. Per questo formerà legami molto facilmente!`;
+        } else {
+          advice = `L'atomo cercherà di cedere o acquisire elettroni per raggiungere i magici 2 o 8 elettroni nel guscio esterno.`;
+        }
+
+        explanationBox.innerHTML = `
+          <p class="text-amber-300 font-semibold mb-1"><i class="fa-solid fa-compass mr-1"></i> Come raggiungerà la felicità?</p>
+          <p>${advice}</p>
+        `;
+        missionHint.textContent = `Aggiungi o togli ${valenceElectrons <= 3 ? valenceElectrons : (maxTargetValence - valenceElectrons)} elettroni per vedere l'effetto stabilità!`;
+      }
+
+      // Evidenzia elemento selezionato nella tavola periodica a 118 elementi
+      document.querySelectorAll('#periodicTableContainer > div').forEach(div => {
+        div.classList.remove('ring-2', 'ring-cyan-400', 'shadow-lg', 'shadow-cyan-400/50', 'scale-105', 'z-20');
+      });
+      const currentCell = document.getElementById(`ptable-${currentAtom.protons}`);
+      if (currentCell) {
+        currentCell.classList.add('ring-2', 'ring-cyan-400', 'shadow-lg', 'shadow-cyan-400/50', 'scale-105', 'z-20');
+      }
+    }
+
+    function openModal(id) {
+      AudioEngine.playPop(480);
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      AudioEngine.playPop(350);
+      document.getElementById(id).classList.add('hidden');
+    }
+  </script>
+
+  <!-- MOTORE GRAFICO CANVAS 2D/3D (SIMULAZIONE NUCLEO & GUSCI DI BOHR) -->
+  <script>
+    const canvas = document.getElementById('atomCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let nucleusParticles = [];
+    let rotationX = 0.3;
+    let rotationY = 0.5;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let electronGlobalAngle = 0;
+
+    // Genera una sfera compatta di protoni e neutroni nel nucleo
+    // Per atomi molto pesanti (Z fino a 118, nucleoni oltre 290), limitiamo il rendering visivo delle sfere a max 110 particelle campione proporzionate
+    function rebuildNucleusSimulation() {
+      nucleusParticles = [];
+      const totalActual = currentAtom.protons + currentAtom.neutrons;
+      
+      // Numero di sfere renderizzate per mantenere fluida l'animazione grafica
+      const renderCount = Math.min(totalActual, 110);
+      const ratioProtons = totalActual > 0 ? (currentAtom.protons / totalActual) : 0.5;
+      
+      const baseSpacing = Math.min(34, 10 + Math.cbrt(renderCount) * 5.5);
+
+      let pAssigned = 0;
+      const targetProtons = Math.round(renderCount * ratioProtons);
+
+      for (let i = 0; i < renderCount; i++) {
+        let type = 'neutron';
+        if (pAssigned < targetProtons && (Math.random() < ratioProtons || (renderCount - i) <= (targetProtons - pAssigned))) {
+          type = 'proton';
+          pAssigned++;
+        }
+
+        const phi = Math.acos(-1 + (2 * i) / renderCount);
+        const theta = Math.sqrt(renderCount * Math.PI) * phi;
+        const r = (Math.random() * 0.45 + 0.55) * baseSpacing;
+
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
+
+        nucleusParticles.push({
+          x, y, z,
+          type: type,
+          radius: Math.max(3.8, 6.5 - (renderCount > 60 ? 1.5 : 0))
+        });
+      }
+    }
+
+    // Gestione ridimensionamento canvas responsive
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Eventi mouse/touch per ruotare il nucleo nello spazio
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      rotationY += dx * 0.01;
+      rotationX += dy * 0.01;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    // Touch per tablet / smartphone
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        lastMouseX = e.touches[0].clientX;
+        lastMouseY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => isDragging = false);
+    canvas.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - lastMouseX;
+      const dy = e.touches[0].clientY - lastMouseY;
+      rotationY += dx * 0.01;
+      rotationX += dy * 0.01;
+      lastMouseX = e.touches[0].clientX;
+      lastMouseY = e.touches[0].clientY;
+    }, { passive: true });
+
+    // Loop Principale di Animazione e Rendering
+    function animate() {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Rotazione lenta automatica del nucleo se l'utente non trascina
+      if (!isDragging) {
+        rotationY += 0.005;
+        rotationX += 0.001;
+      }
+      electronGlobalAngle += 0.015;
+
+      // 1. DISEGNO DEI GUSCI ELETTRONICI ORBITALI (Cerchi concentrici)
+      const shells = calculateShells(currentAtom.electrons);
+      const numShells = Math.max(1, shells.length);
+      
+      const nucleusRadiusBound = Math.min(width * 0.16, 20 + Math.cbrt(nucleusParticles.length) * 5.5);
+      const maxAvailableRadius = Math.min(width, height) * 0.45;
+      const shellStep = Math.max(18, (maxAvailableRadius - nucleusRadiusBound - 15) / Math.max(1, numShells));
+
+      const shellLetters = ['K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+
+      // Disegna le orbite
+      for (let sIdx = 0; sIdx < numShells; sIdx++) {
+        const orbitRadius = nucleusRadiusBound + 22 + (sIdx * shellStep);
+        const countInShell = shells[sIdx] || 0;
+        const isOuterShell = (sIdx === shells.length - 1 && countInShell > 0);
+        const isOctetFull = (isOuterShell && (countInShell === 8 || (countInShell === 2 && currentAtom.protons <= 2)));
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = isOctetFull ? 'rgba(52, 211, 153, 0.45)' : (isOuterShell ? 'rgba(56, 189, 248, 0.4)' : 'rgba(148, 163, 184, 0.15)');
+        ctx.lineWidth = isOuterShell ? 2 : 1;
+        if (isOuterShell && !isOctetFull) {
+          ctx.setLineDash([4, 4]);
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Disegna gli elettroni su quest'orbita
+        const speedMultiplier = (sIdx % 2 === 0 ? 1 : -1) * (1 / (sIdx + 1));
+        const baseAngle = electronGlobalAngle * speedMultiplier;
+
+        // Limita a max 18 sfere renderizzate per guscio per chiarezza visiva ad alta densità
+        const displayElectrons = Math.min(countInShell, 18);
+
+        for (let e = 0; e < displayElectrons; e++) {
+          const angle = baseAngle + (e * (Math.PI * 2 / displayElectrons));
+          const ex = centerX + Math.cos(angle) * orbitRadius;
+          const ey = centerY + Math.sin(angle) * orbitRadius;
+
+          if (isOuterShell) {
+            const glowGrad = ctx.createRadialGradient(ex, ey, 1, ex, ey, 9);
+            glowGrad.addColorStop(0, isOctetFull ? 'rgba(52, 211, 153, 0.9)' : 'rgba(56, 189, 248, 0.8)');
+            glowGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+            ctx.fillStyle = glowGrad;
+            ctx.beginPath();
+            ctx.arc(ex, ey, 9, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.beginPath();
+          ctx.arc(ex, ey, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = isOctetFull ? '#34d399' : '#38bdf8';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // Segnetto meno "-"
+          ctx.fillStyle = '#0f172a';
+          ctx.font = 'bold 8px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('-', ex, ey - 0.5);
+        }
+
+        // Etichetta del Guscio
+        ctx.fillStyle = isOuterShell ? '#38bdf8' : '#64748b';
+        ctx.font = '10px Quicksand, sans-serif';
+        ctx.textAlign = 'left';
+        const label = shellLetters[sIdx] || `n=${sIdx+1}`;
+        ctx.fillText(`${label} (${countInShell} e⁻)`, centerX + orbitRadius + 5, centerY - 2);
+      }
+
+      // 2. DISEGNO DEL NUCLEO (Protoni p+ e Neutroni n0 in 3D Proiettato)
+      const cosY = Math.cos(rotationY);
+      const sinY = Math.sin(rotationY);
+      const cosX = Math.cos(rotationX);
+      const sinX = Math.sin(rotationX);
+
+      const projectedNucleus = nucleusParticles.map(p => {
+        let x1 = p.x * cosY - p.z * sinY;
+        let z1 = p.z * cosY + p.x * sinY;
+        let y2 = p.y * cosX - z1 * sinX;
+        let z2 = z1 * cosX + p.y * sinX;
+
+        const cameraDistance = 300;
+        const scale = cameraDistance / (cameraDistance + z2);
+        return {
+          projX: centerX + x1 * scale,
+          projY: centerY + y2 * scale,
+          projZ: z2,
+          type: p.type,
+          radius: p.radius * scale
+        };
+      });
+
+      projectedNucleus.sort((a, b) => b.projZ - a.projZ);
+
+      // Bagliore energetico nucleare
+      const nuclGlow = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, nucleusRadiusBound + 12);
+      nuclGlow.addColorStop(0, 'rgba(239, 68, 68, 0.28)');
+      nuclGlow.addColorStop(0.5, 'rgba(99, 102, 241, 0.12)');
+      nuclGlow.addColorStop(1, 'rgba(2, 6, 23, 0)');
+      ctx.fillStyle = nuclGlow;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, nucleusRadiusBound + 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Disegna ciascuna particella del nucleo
+      projectedNucleus.forEach(np => {
+        ctx.beginPath();
+        ctx.arc(np.projX, np.projY, Math.max(2, np.radius), 0, Math.PI * 2);
+
+        const grad = ctx.createRadialGradient(
+          np.projX - np.radius * 0.35, 
+          np.projY - np.radius * 0.35, 
+          np.radius * 0.1, 
+          np.projX, 
+          np.projY, 
+          np.radius
+        );
+
+        if (np.type === 'proton') {
+          grad.addColorStop(0, '#fca5a5');
+          grad.addColorStop(0.4, '#ef4444');
+          grad.addColorStop(1, '#991b1b');
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          if (np.radius > 4.5) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${Math.floor(np.radius * 1.1)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('+', np.projX, np.projY + 0.5);
+          }
+        } else {
+          grad.addColorStop(0, '#f1f5f9');
+          grad.addColorStop(0.5, '#94a3b8');
+          grad.addColorStop(1, '#334155');
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          if (np.radius > 4.5) {
+            ctx.fillStyle = '#0f172a';
+            ctx.font = `bold ${Math.floor(np.radius * 0.85)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('n', np.projX, np.projY + 0.5);
+          }
+        }
+
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    // Inizializzazione al caricamento della pagina
+    window.onload = function() {
+      resizeCanvas();
+      renderPeriodicTable();
+      rebuildNucleusSimulation();
+      updateUI();
+      animate();
+    };
+  </script>
+</body>
+</html>
